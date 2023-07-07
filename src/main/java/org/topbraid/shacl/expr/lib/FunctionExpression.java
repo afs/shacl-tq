@@ -31,6 +31,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.ExprEvalException;
+import org.apache.jena.sparql.expr.ExprException;
 import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.Function;
 import org.apache.jena.sparql.function.FunctionEnv;
@@ -54,21 +55,21 @@ import org.topbraid.shacl.expr.NodeExpressionVisitor;
 import org.topbraid.shacl.vocabulary.SPARQL;
 
 public class FunctionExpression extends ComplexNodeExpression {
-	
+
 	private List<NodeExpression> args;
-	
+
 	private Expr expr;
-	
+
 	private Resource function;
-	
-	
+
+
 	public FunctionExpression(RDFNode expr, Resource function, List<NodeExpression> args) {
-		
+
 		super(expr);
-		
+
 		this.args = args;
 		this.function = function;
-		
+
 		if(function.getNameSpace().equals(SPARQL.NS)) {
 			if (!BuilderExpr.isDefined(function.getLocalName())) {
 				throw new IllegalArgumentException("Unknown SPARQL built-in " + function.getLocalName());
@@ -97,7 +98,7 @@ public class FunctionExpression extends ComplexNodeExpression {
 				sb.append("?a" + i);
 			}
 			sb.append(")");
-			
+
 			this.expr = ExprUtils.parse(sb.toString());
 		}
 	}
@@ -106,7 +107,7 @@ public class FunctionExpression extends ComplexNodeExpression {
 	@Override
 	public ExtendedIterator<RDFNode> eval(RDFNode focusNode, NodeExpressionContext context) {
 		List<RDFNode> results = new LinkedList<>();
-		
+
 		Context cxt = ARQ.getContext().copy();
 		cxt.set(ARQConstants.sysCurrentTime, NodeFactoryExtra.nowAsDateTime());
 
@@ -133,11 +134,11 @@ public class FunctionExpression extends ComplexNodeExpression {
 			}
 			as.add(a);
 		}
-		
+
 		Runnable tearDownCTFR = CurrentThreadFunctionRegistry.register(context.getShapesGraph().getShapesModel());
 		try {
 			for(int x = 0; x < total; x++) {
-				
+
 				int y = x;
 				BindingBuilder builder = BindingBuilder.create();
 				for(int i = 0; i < args.size(); i++) {
@@ -148,7 +149,7 @@ public class FunctionExpression extends ComplexNodeExpression {
 						y /= a.size();
 					}
 				}
-				
+
 				Dataset dataset = context.getDataset();
 				DatasetGraph dsg = dataset.asDatasetGraph();
 				FunctionEnv env = new ExecutionContext(cxt, dsg.getDefaultGraph(), dsg, null);
@@ -171,8 +172,8 @@ public class FunctionExpression extends ComplexNodeExpression {
 		}
 		return WrappedIterator.create(results.iterator());
 	}
-	
-	
+
+
 	public Resource getFunction() {
 		return function;
 	}
@@ -187,8 +188,8 @@ public class FunctionExpression extends ComplexNodeExpression {
 		}
 		return results;
 	}
-	
-	
+
+
 	@Override
 	public List<NodeExpression> getInputExpressions() {
 		return args;
