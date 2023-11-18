@@ -20,25 +20,25 @@ import org.topbraid.shacl.vocabulary.SH;
 
 /**
  * Node expressions based on a SPARQL query, identified by sh:select or sh:ask.
- * 
+ *
  * This node expression type is not part of the SHACL-AF 1.0 document, but a candidate for 1.1.
- * 
+ *
  * @author Holger Knublauch
  */
 public abstract class AbstractSPARQLExpression extends AbstractInputExpression {
-	
+
 	private Query query;
-	
+
 	private String queryString;
-	
-	
+
+
 	protected AbstractSPARQLExpression(Resource expr, Query query, NodeExpression input, String queryString) {
 		super(expr, input);
 		this.query = query;
 		this.queryString = queryString;
 	}
 
-	
+
 	@Override
 	public ExtendedIterator<RDFNode> eval(RDFNode focusNode, NodeExpressionContext context) {
 		List<RDFNode> focusNodes;
@@ -76,20 +76,20 @@ public abstract class AbstractSPARQLExpression extends AbstractInputExpression {
 	@Override
 	public List<String> getFunctionalSyntaxArguments() {
 		List<String> results = new LinkedList<>();
-		results.add(FmtUtils.stringForNode(NodeFactory.createLiteral(queryString)));
+		results.add(FmtUtils.stringForNode(NodeFactory.createLiteralString(queryString)));
 		NodeExpression input = getInput();
 		if(input != null) {
 			results.add(input.getFunctionalSyntax());
 		}
 		return results;
 	}
-	
-	
+
+
 	public Query getQuery() {
 		return query;
 	}
-	
-	
+
+
 	public String getQueryString() {
 		return queryString;
 	}

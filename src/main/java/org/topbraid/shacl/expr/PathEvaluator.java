@@ -41,22 +41,22 @@ import org.topbraid.shacl.expr.lib.DistinctExpression;
 /**
  * An object that computes the values of a sh:path node expression.
  * This implements consistent handling of inferred values.
- * 
+ *
  * Inferences are limited to simple forward paths consisting of a single predicate.
- * 
+ *
  * @author Holger Knublauch
  */
 public class PathEvaluator {
-	
+
 	private NodeExpression input;
-	
+
 	private boolean isInverse;
-	
+
 	private Path jenaPath;
-	
+
 	private Property predicate;
-	
-	
+
+
 	/**
 	 * Constructs a PathEvaluator for a single "forward" property look-up.
 	 * @param predicate  the predicate
@@ -64,8 +64,8 @@ public class PathEvaluator {
 	public PathEvaluator(Property predicate) {
 		this.predicate = predicate;
 	}
-	
-	
+
+
 	/**
 	 * Constructs a PathEvaluator for an arbitrary SPARQL path (except single forward properties).
 	 * @param path  the path
@@ -102,8 +102,8 @@ public class PathEvaluator {
 			}
 		}
 	}
-	
-	
+
+
 	public ExtendedIterator<RDFNode> evalReverse(RDFNode valueNode, NodeExpressionContext context) {
 		// See isReversible, this only supports trivial cases for now
 		if(isInverse) {
@@ -118,17 +118,17 @@ public class PathEvaluator {
 			return context.getDataset().getDefaultModel().listSubjectsWithProperty(predicate, valueNode).mapWith(r -> (RDFNode)r);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Gets the executed Jena Path or null if this is just a simple forward property.
-	 * @return
+	 * @return Path
 	 */
 	public Path getJenaPath() {
 		return jenaPath;
 	}
-	
-	
+
+
 	/**
 	 * Gets the predicate if this is a simple forward property path.
 	 * Returns null for inverse paths.
@@ -142,8 +142,8 @@ public class PathEvaluator {
 			return null;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Checks if the values of this may be inferred.
 	 * This is the case if this uses a single forward property path and there are any sh:values or sh:defaultValue statements on
@@ -162,14 +162,14 @@ public class PathEvaluator {
 			return false;
 		}
 	}
-	
-	
+
+
 	public boolean isReversible(ShapesGraph shapesGraph) {
 		// Very conservative algorithm for now
 		return input == null && !isMaybeInferred(shapesGraph) && jenaPath == null;
 	}
-	
-	
+
+
 	public void setInput(NodeExpression input) {
 		this.input = input;
 	}
@@ -194,8 +194,8 @@ public class PathEvaluator {
 			return WrappedIterator.create(results.iterator());
 		}
 	}
-	
-	
+
+
 	private ExtendedIterator<RDFNode> withDefaultValues(ExtendedIterator<RDFNode> base, RDFNode focusNode, NodeExpressionContext context) {
 		if(isInverse || predicate == null || base.hasNext()) {
 			return base;
@@ -225,8 +225,8 @@ public class PathEvaluator {
 			}
 		}
 	}
-	
-	
+
+
 	private ExtendedIterator<RDFNode> withInferences(ExtendedIterator<RDFNode> base, RDFNode focusNode, NodeExpressionContext context) {
 		if(predicate != null && !isInverse && focusNode.isResource()) {
 			Map<Node,NodeExpression> map = context.getShapesGraph().getValuesNodeExpressionsMap(predicate);

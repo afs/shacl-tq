@@ -9,23 +9,24 @@ import org.apache.jena.rdf.model.Resource;
  * Configures the behavior of the validation engine.
  */
 public class ValidationEngineConfiguration {
-	
+
 	// By default don't produce sh:detail
 	private boolean reportDetails = false;
-	
+
 	// By default validate all constraints
 	private Set<Resource> skippedConstraintComponents = new HashSet<>();
-	
+
 	// By default validate shapes
 	private boolean validateShapes = true;
 
     // By default collect all possible errors
     private int validationErrorBatch = -1;
-    
-    
+
+
     /**
      * Creates a clone of this, with exactly the same values.
      */
+    @Override
     public ValidationEngineConfiguration clone() {
     	ValidationEngineConfiguration c = new ValidationEngineConfiguration();
     	c.reportDetails = this.reportDetails;
@@ -34,8 +35,8 @@ public class ValidationEngineConfiguration {
     	c.validationErrorBatch = this.validationErrorBatch;
     	return c;
     }
-    
-    
+
+
     /**
      * Checks whether the report shall include sh:detail triples (for sh:node etc).
      * @return true to report details (false is default)
@@ -43,7 +44,7 @@ public class ValidationEngineConfiguration {
     public boolean getReportDetails() {
     	return reportDetails;
     }
-    
+
     /**
      * Specifies whether the report shall include sh:detail triples where supported.
      * @param reportDetails  true to produce sh:details, false for the default
@@ -53,7 +54,7 @@ public class ValidationEngineConfiguration {
     	this.reportDetails = reportDetails;
     	return this;
     }
-    
+
     /**
      * Maximum number of validations before returning the report.
      * @return number of validations or -1 to mean all validations
@@ -76,8 +77,8 @@ public class ValidationEngineConfiguration {
      * Should the engine validates shapes
      * @return boolean flag for shapes validation
      */
-    public boolean getValidateShapes() { 
-    	return validateShapes; 
+    public boolean getValidateShapes() {
+    	return validateShapes;
     }
 
     /**
@@ -89,7 +90,7 @@ public class ValidationEngineConfiguration {
         this.validateShapes = validateShapes;
         return this;
     }
-    
+
     /**
      * Checks whether the engine should skip constraints of a given constraint component.
      * @param component  the constraint component
@@ -98,7 +99,7 @@ public class ValidationEngineConfiguration {
     public boolean isSkippedConstraintComponent(Resource component) {
     	return skippedConstraintComponents.contains(component);
     }
-    
+
     public void addSkippedConstraintComponent(Resource component) {
     	skippedConstraintComponents.add(component);
     }

@@ -36,11 +36,11 @@ public class QueryExecutionFactoryFilter {
 	static final String LOG_NAME = "QueryLog";
 	private Logger logger;
 	private static QueryExecutionFactoryFilter singleton = new QueryExecutionFactoryFilter();
-	
+
 	// ---- Support for controlling printing queries while running. See function "printQuery".
 	private static boolean PRINT = false;
     // ---- Support for controlling printing queries while running.
-	
+
 	/**
 	 * Gets the singleton instance of this class.
 	 * @return the singleton
@@ -48,7 +48,7 @@ public class QueryExecutionFactoryFilter {
 	public static QueryExecutionFactoryFilter get() {
 		return singleton;
 	}
-	
+
 	private QueryExecutionFactoryFilter() {
 		logger = LoggerFactory.getLogger(LOG_NAME);
 	}
@@ -72,15 +72,15 @@ public class QueryExecutionFactoryFilter {
 		return QueryExecutionFactory.create(query, dataset);
 	}
 
-	public QueryExecution create(Query query, Dataset dataset, QuerySolution initialBinding) {
-		analyzeRequest(query, dataset, initialBinding);
-		return QueryExecutionFactory.create(query, dataset, initialBinding);
+	public QueryExecution create(Query query, Dataset dataset, QuerySolution querySolution) {
+		analyzeRequest(query, dataset, querySolution);
+		return QueryExecution.dataset(dataset).query(query).substitution(querySolution).build();
 	}
 
 	public QueryExecution sparqlService(String service, Query query) {
 		return sparqlServiceBuilder(service, query).build();
 	}
-	
+
     public QueryExecution sparqlService(String service, Query query, HttpClient httpClient) {
 		return sparqlServiceBuilder(service, query, httpClient).build();
     }
@@ -91,40 +91,40 @@ public class QueryExecutionFactoryFilter {
 		namedGraphURIs.forEach(uri -> builder.addNamedGraphURI(uri));
 		return builder.build();
 	}
-	
+
     private QueryExecutionHTTPBuilder sparqlServiceBuilder(String service, Query query, HttpClient httpClient) {
 		return sparqlServiceBuilder(service, query).httpClient(httpClient);
 	}
-	
+
     private QueryExecutionHTTPBuilder sparqlServiceBuilder(String service, Query query) {
 		return QueryExecution.service(service).query(query);
     }
-    
+
 	private void analyzeRequest(Query query, Model model, QuerySolution initialBinding) {
         printQuery(query, initialBinding);
 
-		if(logger.isTraceEnabled()) {	
-			logger.trace("QUERY[" + analyzeQuery(query) 
-				+ "]\nMODEL[" + analyzeModel(model) + "]" 
+		if(logger.isTraceEnabled()) {
+			logger.trace("QUERY[" + analyzeQuery(query)
+				+ "]\nMODEL[" + analyzeModel(model) + "]"
 				+  serializeBindings(initialBinding));
 		}
 	}
-	
+
 	private void analyzeRequest(Query query, Dataset dataset, QuerySolution initialBinding) {
 	    printQuery(query, initialBinding);
-	    
-		if(logger.isTraceEnabled()) {	
-			logger.trace("QUERY[" + analyzeQuery(query) 
-				+ "]\nDATASET[" + analyzeDataset(dataset) + "]" 
+
+		if(logger.isTraceEnabled()) {
+			logger.trace("QUERY[" + analyzeQuery(query)
+				+ "]\nDATASET[" + analyzeDataset(dataset) + "]"
 				+  serializeBindings(initialBinding));
 		}
 	}
-	
+
 	private static final DateTimeFormatter timestamp  = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 	// Development support. Dynmically controlled print query.
 	private void printQuery(Query query, QuerySolution initialBinding) {
 	    if ( PRINT ) {
-	        String time = DateTimeUtils.nowAsString(timestamp); 
+	        String time = DateTimeUtils.nowAsString(timestamp);
             System.err.print("~~ ");
             System.err.print(time);
             System.err.println(" ~~");
@@ -141,26 +141,26 @@ public class QueryExecutionFactoryFilter {
     public static void enableQueryPrinting(boolean value) {
         PRINT = value;
     }
-		
+
 	private String serializeBindings(QuerySolution bindings) {
 		if(bindings == null) return "";
 		return "\nINITIAL BINDINGS[" + bindings.toString() + "]";
 	}
-	
+
 	private String analyzeQuery(Query query) {
 		if(query == null) return "null query";
 		return query.toString();
 	}
-	
+
 	private String analyzeModel(Model model) {
 		if(model == null) return "null model";
-		
+
 		return "this space for rent";
 	}
-	
+
 	private String analyzeDataset(Dataset dataset) {
 		if(dataset == null) return "null dataset";
-		
+
 		return "A Dataset";
 	}
 }

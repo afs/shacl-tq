@@ -52,13 +52,13 @@ import org.topbraid.shacl.vocabulary.SH;
 /**
  * Represents a shapes graph as input to an engine (e.g. validation or inferencing).
  * This is basically a collection of Shapes with some data structures that avoid repetitive computation.
- * 
+ *
  * @author Holger Knublauch
  */
 public class ShapesGraph {
-	
+
 	private final static Map<Node,NodeExpression> EMPTY = new HashMap<>();
-	
+
 	// May be defined to skip certain constraints (which are computed on demand)
 	private Predicate<Constraint> constraintFilter;
 
@@ -67,11 +67,11 @@ public class ShapesGraph {
 
 	// Can be used to bypass TDB's slow prefix mapping
 	private PrefixMapping fastPrefixMapping;
-	
+
 	// Cache of shapeFilter results
 	private Map<Node,Boolean> ignoredShapes = new ConcurrentHashMap<>();
 
-	// Mapping of properties (e.g., sh:datatype) to their constraint components (e.g., sh:DatatypeConstraintComponent) 
+	// Mapping of properties (e.g., sh:datatype) to their constraint components (e.g., sh:DatatypeConstraintComponent)
 	private Map<Property,SHConstraintComponent> parametersMap = new ConcurrentHashMap<>();
 
 	// The root shapes where whole-graph validation and inferencing would start
@@ -79,17 +79,17 @@ public class ShapesGraph {
 
 	// Can be used to skip certain shapes
 	private Predicate<SHShape> shapeFilter;
-	
+
 	// Map of Jena Nodes to their Shape instances, computed on demand
 	private Map<Node,Shape> shapesMap = new ConcurrentHashMap<>();
 
 	// The Jena Model of the shape definitions
 	private Model shapesModel;
-	
+
 	// Map of sh:values expressions. Outer keys are sh:path predicates, inner keys are (node) shapes.
 	private Map<Node,Map<Node,NodeExpression>> valuesMap = new ConcurrentHashMap<>();
 
-	
+
 	/**
 	 * Constructs a new ShapesGraph.
 	 * This should not be called directly, only from ShapesGraphFactory.
@@ -98,21 +98,22 @@ public class ShapesGraph {
 	public ShapesGraph(Model shapesModel) {
 		this.shapesModel = shapesModel;
 	}
-	
-	
-	public ShapesGraph clone() {
+
+
+	@Override
+    public ShapesGraph clone() {
 		ShapesGraph clone = new ShapesGraph(shapesModel);
 		clone.constraintFilter = this.constraintFilter;
 		clone.shapeFilter = this.shapeFilter;
 		return clone;
 	}
-	
-	
+
+
 	public Constraint createConstraint(Shape shape, SHConstraintComponent component, List<SHParameter> params, RDFNode parameterValue) {
 		return new Constraint(shape, component, params, parameterValue);
 	}
 
-	
+
 	public SHConstraintComponent getComponentWithParameter(Property parameter) {
 		return parametersMap.computeIfAbsent(parameter, p -> {
 			StmtIterator it = shapesModel.listStatements(null, SH.path, parameter);
@@ -134,8 +135,8 @@ public class ShapesGraph {
 			return null;
 		});
 	}
-	
-	
+
+
 	// Added for cases where repeated access to the prefixes causes many (TDB) loads, produces a faster in-memory PrefixMapping
 	public synchronized PrefixMapping getFastPrefixMapping() {
 		if(fastPrefixMapping == null) {
@@ -147,8 +148,8 @@ public class ShapesGraph {
 		}
 		return fastPrefixMapping;
 	}
-	
-	
+
+
 	public String getPathString(Resource path) {
 		if(path.isURIResource()) {
 			return FmtUtils.stringForNode(path.asNode(), getFastPrefixMapping());
@@ -157,15 +158,15 @@ public class ShapesGraph {
 			return SHACLPaths.getPathString(path);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Gets all non-deactivated shapes that declare a target and pass the provided filter.
 	 * @return the root shapes
 	 */
 	public synchronized List<Shape> getRootShapes() {
 		if(rootShapes == null) {
-			
+
 			// Collect all shapes, as identified by target and/or type
 			Set<Resource> candidates = new HashSet<>();
 			candidates.addAll(shapesModel.listSubjectsWithProperty(SH.target).toList());
@@ -195,13 +196,13 @@ public class ShapesGraph {
 		}
 		return rootShapes;
 	}
-	
-	
+
+
 	public Shape getShape(Node node) {
 		return shapesMap.computeIfAbsent(node, n -> new Shape(this, SHFactory.asShape(shapesModel.asRDFNode(node))));
 	}
-	
-	
+
+
 	/**
 	 * Gets a Map from (node) shapes to NodeExpressions derived from sh:defaultValue statements.
 	 * @param predicate  the predicate to infer
@@ -210,8 +211,8 @@ public class ShapesGraph {
 	public Map<Node,NodeExpression> getDefaultValueNodeExpressionsMap(Resource predicate) {
 		return getExpressionsMap(defaultValueMap, predicate, SH.defaultValue);
 	}
-	
-	
+
+
 	/**
 	 * Gets a Map from (node) shapes to NodeExpressions derived from sh:values statements.
 	 * Can be used to efficiently figure out how to infer the values of a given instance, based on the rdf:types
@@ -222,11 +223,11 @@ public class ShapesGraph {
 	public Map<Node,NodeExpression> getValuesNodeExpressionsMap(Resource predicate) {
 		return getExpressionsMap(valuesMap, predicate, SH.values);
 	}
-	
-	
+
+
 	private Map<Node,NodeExpression> getExpressionsMap(Map<Node,Map<Node,NodeExpression>> valuesMap, Resource predicate, Property systemPredicate) {
 		return valuesMap.computeIfAbsent(predicate.asNode(), p -> {
-			
+
 			Map<Node,List<NodeExpression>> map = new HashMap<>();
 			StmtIterator it = shapesModel.listStatements(null, SH.path, predicate);
 			while(it.hasNext()) {
@@ -248,7 +249,7 @@ public class ShapesGraph {
 					}
 				}
 			}
-			
+
 			if(map.isEmpty()) {
 				// Return a non-null but empty value to avoid re-computation (null not supported by ConcurrentHashMap)
 				return EMPTY;
@@ -283,8 +284,8 @@ public class ShapesGraph {
 			return exprs;
 		});
 	}
-	
-	
+
+
 	public Model getShapesModel() {
 		return shapesModel;
 	}
@@ -295,19 +296,19 @@ public class ShapesGraph {
 			return false;
 		}
 		else {
-			return ignoredShapes.computeIfAbsent(shapeNode, node -> {				
+			return ignoredShapes.computeIfAbsent(shapeNode, node -> {
 				SHShape shape = SHFactory.asShape(shapesModel.asRDFNode(shapeNode));
 				return !shapeFilter.test(shape);
 			});
 		}
 	}
-	
-	
+
+
 	public boolean isIgnoredConstraint(Constraint constraint) {
 		return constraintFilter != null && !constraintFilter.test(constraint);
 	}
-	
-	
+
+
 	/**
 	 * Sets a filter Predicate that can be used to ignore certain constraints.
 	 * See for example CoreConstraintFilter.
@@ -318,8 +319,8 @@ public class ShapesGraph {
 	public void setConstraintFilter(Predicate<Constraint> value) {
 		this.constraintFilter = value;
 	}
-	
-	
+
+
 	/**
 	 * Sets a filter Predicate that can be used to ignore certain shapes.
 	 * Such filters must return true if the shape should be used, false to ignore.

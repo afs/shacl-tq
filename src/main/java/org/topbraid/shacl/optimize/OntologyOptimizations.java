@@ -17,7 +17,6 @@
 package org.topbraid.shacl.optimize;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 import org.apache.jena.atlas.iterator.Iter;
@@ -27,7 +26,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
 import org.topbraid.jenax.util.ARQFactory;
-import org.topbraid.jenax.util.ExceptionUtil;
 import org.topbraid.jenax.util.JenaUtil;
 import org.topbraid.shacl.engine.ShapesGraph;
 import org.topbraid.shacl.engine.ShapesGraphFactory;
@@ -84,7 +82,7 @@ public class OntologyOptimizations {
 
 	public ClassMetadata getClassMetadata(Node cls, Graph graph, String graphKey) {
 		Object cacheKey = ClassMetadata.createKey(cls, graphKey);
-		return (ClassMetadata) getOrComputeObject(cacheKey, () -> new ClassMetadata(cls, graphKey));
+		return (ClassMetadata) getOrComputeObject(cacheKey, (gKeyUnused) -> new ClassMetadata(cls, graphKey));
 	}
 
 
@@ -95,18 +93,9 @@ public class OntologyOptimizations {
 
 	// Legacy version with Function parameter
 	public Object getOrComputeObject(Object key, Function<Object,Object> function) {
-		return getOrComputeObject(key, () -> function.apply(key));
+	    return cache.get(key, function);
 	}
 
-
-	public Object getOrComputeObject(Object key, Callable<Object> callable) {
-		try {
-			return cache.getOrFill(key, callable);
-		} catch (RuntimeException ex) {
-			log.error("Failed to populate OntologyOptimizations with key " + key, ex);
-			throw ExceptionUtil.throwUnchecked(ex);
-		}
-	}
 
 	public ShapesGraph getCachableShapesGraph(String uri) {
 		String key = "CachableShapesGraph-" + uri;

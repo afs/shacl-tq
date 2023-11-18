@@ -19,7 +19,6 @@ package org.topbraid.shacl.arq;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Dataset;
@@ -30,25 +29,24 @@ import org.apache.jena.sparql.expr.NodeValue;
 
 /**
  * A cache that remembers previous calls to SHACL functions marked with sh:cachable.
- * 
+ *
  * @author Holger Knublauch
  */
 public class SHACLFunctionsCache {
 
 	private static SHACLFunctionsCache singleton = new SHACLFunctionsCache();
-	
+
 	public static SHACLFunctionsCache get() {
 		return singleton;
 	}
-	
+
 	public static void set(SHACLFunctionsCache value) {
 		SHACLFunctionsCache.singleton = value;
 	}
-	
-	
+
+
 	private static final int capacity = 10000;
-	
-	@SuppressWarnings("serial")
+
 	private static class MyCache extends LinkedHashMap<Key,Result> {
 
 		MyCache() {
@@ -56,7 +54,7 @@ public class SHACLFunctionsCache {
 		}
 
 		@Override
-		protected boolean removeEldestEntry(Entry<Key, Result> eldest) {
+		protected boolean removeEldestEntry(Map.Entry<Key, Result> eldest) {
 			if(size() > capacity) {
 				return true;
 			}
@@ -65,15 +63,15 @@ public class SHACLFunctionsCache {
 			}
 		}
 	};
-	
+
 	private Map<Key,Result> cache = Collections.synchronizedMap(new MyCache());
 
-	
+
 	public void clear() {
 		cache.clear();
 	}
-	
-	
+
+
 	public NodeValue execute(SHACLARQFunction function, Dataset dataset, Model defaultModel, QuerySolution bindings, Node[] args) {
 		Key key = new Key(function.getSHACLFunction().getURI(), args);
 		Result result = cache.get(key);
@@ -94,17 +92,17 @@ public class SHACLFunctionsCache {
 			return result.nodeValue;
 		}
 	}
-	
-	
+
+
 	private static class Key {
-		
+
 		private int hashCode;
-		
+
 		private Node[] args;
-		
+
 		private String functionURI;
-		
-		
+
+
 		Key(String functionURI, Node[] args) {
 			this.args = args;
 			this.functionURI = functionURI;
@@ -115,8 +113,8 @@ public class SHACLFunctionsCache {
 				}
 			}
 		}
-		
-		
+
+
 		private boolean argEquals(Node arg1, Node arg2) {
 			if(arg1 == null) {
 				return arg2 == null;
@@ -128,45 +126,45 @@ public class SHACLFunctionsCache {
 				return arg1.equals(arg2);
 			}
 		}
-		
-		
+
+
 		@Override
 		public boolean equals(Object obj) {
-			
+
 			if(!(obj instanceof Key)) {
 				return false;
 			}
-			
+
 			Key other = (Key) obj;
 			if(!functionURI.equals(other.functionURI)) {
 				return false;
 			}
-			
+
 			if(args.length != other.args.length) {
 				return false;
 			}
-			
+
 			for(int i = 0; i < args.length; i++) {
 				if(!argEquals(args[i], other.args[i])) {
 					return false;
 				}
 			}
-			
+
 			return true;
 		}
-		
-		
+
+
 		@Override
 		public int hashCode() {
 			return hashCode;
 		}
 	}
-	
-	
+
+
 	private static class Result {
-		
+
 		ExprEvalException ex;
-		
+
 		NodeValue nodeValue;
 	}
 }

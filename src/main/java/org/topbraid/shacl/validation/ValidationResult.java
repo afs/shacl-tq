@@ -9,17 +9,16 @@ import org.apache.jena.rdf.model.Resource;
 
 /**
  * A validation result, as produced by the validation engine.
- * 
+ *
  * @author Holger Knublauch
  */
 public interface ValidationResult {
 
 	/**
 	 * See sh:focusNode.
-	 * @return
 	 */
 	RDFNode getFocusNode();
-	
+
 	/**
 	 * Gets the human-readable message attached to the result.
 	 * Note that validation results can have multiple messages in different languages, <code>getMessages()</code> might be
@@ -30,13 +29,11 @@ public interface ValidationResult {
 
 	/**
 	 * Gets the human-readable message attached to the result (see sh:resultMessage).
-	 * @return
 	 */
 	Collection<RDFNode> getMessages();
 
 	/**
 	 * See sh:resultPath.
-	 * @return
 	 */
 	Resource getPath();
 
@@ -49,31 +46,26 @@ public interface ValidationResult {
 
 	/**
 	 * See sh:resultSeverity.
-	 * @return
 	 */
 	Resource getSeverity();
-	
+
 	/**
 	 * See sh:sourceConstraint.
-	 * @return
 	 */
 	Resource getSourceConstraint();
-	
+
 	/**
 	 * See sh:sourceConstraintComponent.
-	 * @return
 	 */
 	Resource getSourceConstraintComponent();
-	
+
 	/**
 	 * See sh:sourceShape.
-	 * @return
 	 */
 	Resource getSourceShape();
-	
+
 	/**
 	 * See sh:value.
-	 * @return
 	 */
 	RDFNode getValue();
 }

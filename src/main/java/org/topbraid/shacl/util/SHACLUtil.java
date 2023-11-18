@@ -66,21 +66,21 @@ import org.topbraid.shacl.vocabulary.SH;
 
 /**
  * Various SHACL-related utility methods that didn't fit elsewhere.
- * 
+ *
  * @author Holger Knublauch
  */
 public class SHACLUtil {
-	
+
 	public final static Resource[] RESULT_TYPES = {
 		DASH.FailureResult,
 		DASH.SuccessResult,
 		SH.ValidationResult
 	};
-	
+
 	public final static String SHAPES_FILE_PART = ".shapes.";
-	
+
 	public static final String URN_X_SHACL = "urn:x-shacl:";
-	
+
 	private static final Set<Property> SPARQL_PROPERTIES = new HashSet<Property>();
 	static {
 		SPARQL_PROPERTIES.add(SH.ask);
@@ -88,7 +88,7 @@ public class SHACLUtil {
 		SPARQL_PROPERTIES.add(SH.select);
 		SPARQL_PROPERTIES.add(SH.update);
 	}
-	
+
 	private static Query propertyLabelQuery = ARQFactory.get().createQuery(
 			"PREFIX rdfs: <" + RDFS.getURI() + ">\n" +
 			"PREFIX sh: <" + SH.NS + ">\n" +
@@ -102,7 +102,7 @@ public class SHACLUtil {
 			"    ?p rdfs:label ?label .\n" +
 			"}");
 
-	
+
 	public static void addDirectPropertiesOfClass(Resource cls, Collection<Property> results) {
 		for(Resource argument : JenaUtil.getResourceProperties(cls, SH.parameter)) {
 			Resource predicate = argument.getPropertyResourceValue(SH.path);
@@ -120,10 +120,10 @@ public class SHACLUtil {
 
 
 	private static void addIncludes(Graph model, String uri, Set<Graph> graphs, Set<String> reachedURIs) {
-		
+
 		graphs.add(model);
 		reachedURIs.add(uri);
-		
+
 		for(Triple t : model.find(null, OWL.imports.asNode(), null).toList()) {
 			if(t.getObject().isURI()) {
 				String includeURI = t.getObject().getURI();
@@ -150,12 +150,12 @@ public class SHACLUtil {
 			results.add(focusNode.asNode());
 		}
 	}
-	
-	
+
+
 	/**
 	 * Creates an includes Model for a given input Model.
 	 * The includes Model is the union of the input Model will all graphs linked via
-	 * sh:include (or owl:imports), transitively. 
+	 * sh:include (or owl:imports), transitively.
 	 * @param model  the Model to create the includes Model for
 	 * @param graphURI  the URI of the named graph represented by Model
 	 * @return a Model including the semantics
@@ -163,9 +163,9 @@ public class SHACLUtil {
 	public static Model createIncludesModel(Model model, String graphURI) {
 		Set<Graph> graphs = new HashSet<Graph>();
 		Graph baseGraph = model.getGraph();
-		
+
 		addIncludes(baseGraph, graphURI, graphs, new HashSet<String>());
-		
+
 		if(graphs.size() == 1) {
 			return model;
 		}
@@ -180,8 +180,8 @@ public class SHACLUtil {
 	public static URI createRandomShapesGraphURI() {
 		return URI.create(URN_X_SHACL + UUID.randomUUID());
 	}
-	
-	
+
+
 	/**
 	 * Gets all focus nodes from the default Model of a given dataset.
 	 * This includes all targets of all defined targets as well as all instances of classes that
@@ -193,7 +193,7 @@ public class SHACLUtil {
 	public static Set<Node> getAllFocusNodes(Dataset dataset, boolean validateShapes) {
 
 		Set<Node> results = new HashSet<Node>();
-		
+
 		// Add all instances of classes that are also shapes
 		Model model = dataset.getDefaultModel();
 		for(Resource shape : JenaUtil.getAllInstances(SH.Shape.inModel(model))) {
@@ -203,7 +203,7 @@ public class SHACLUtil {
 				}
 			}
 		}
-		
+
 		// Add all instances of classes mentioned in sh:targetClass triples
 		for(Statement s : model.listStatements(null, SH.targetClass, (RDFNode)null).toList()) {
 			if(s.getObject().isResource()) {
@@ -216,12 +216,12 @@ public class SHACLUtil {
 				}
 			}
 		}
-		
+
 		// Add all objects of sh:targetNode triples
 		for(Statement s : model.listStatements(null, SH.targetNode, (RDFNode)null).toList()) {
 			results.add(s.getObject().asNode());
 		}
-		
+
 		// Add all target nodes of sh:target triples
 		for(Statement s : model.listStatements(null, SH.target, (RDFNode)null).toList()) {
 			if(s.getObject().isResource()) {
@@ -231,7 +231,7 @@ public class SHACLUtil {
 				}
 			}
 		}
-		
+
 		// Add all objects of the predicate used as sh:targetObjectsOf
 		for(RDFNode property : model.listObjectsOfProperty(SH.targetObjectsOf).toList()) {
 			if(property.isURIResource()) {
@@ -241,7 +241,7 @@ public class SHACLUtil {
 				}
 			}
 		}
-		
+
 		// Add all subjects of the predicate used as sh:targetSubjectsOf
 		for(RDFNode property : model.listObjectsOfProperty(SH.targetSubjectsOf).toList()) {
 			if(property.isURIResource()) {
@@ -251,11 +251,11 @@ public class SHACLUtil {
 				}
 			}
 		}
-		
+
 		return results;
 	}
-	
-	
+
+
 	public static List<SHResult> getAllTopLevelResults(Model model) {
 		List<SHResult> results = new LinkedList<SHResult>();
 		for(Resource type : RESULT_TYPES) {
@@ -267,8 +267,8 @@ public class SHACLUtil {
 		}
 		return results;
 	}
-	
-	
+
+
 	/**
 	 * Gets all (transitive) superclasses including shapes that reference a class via sh:targetClass.
 	 * @param cls  the class to start at
@@ -279,8 +279,8 @@ public class SHACLUtil {
 		getAllSuperClassesAndShapesStarHelper(cls, results);
 		return results;
 	}
-	
-	
+
+
 	private static void getAllSuperClassesAndShapesStarHelper(Resource node, Set<Resource> results) {
 		if(!results.contains(node)) {
 			results.add(node);
@@ -301,8 +301,8 @@ public class SHACLUtil {
 			}
 		}
 	}
-	
-	
+
+
 	public static SHConstraintComponent getConstraintComponentOfValidator(Resource validator) {
 		for(Statement s : validator.getModel().listStatements(null, null, validator).toList()) {
 			if(SH.validator.equals(s.getPredicate()) || SH.nodeValidator.equals(s.getPredicate()) || SH.propertyValidator.equals(s.getPredicate())) {
@@ -311,8 +311,8 @@ public class SHACLUtil {
 		}
 		return null;
 	}
-	
-	
+
+
 	public static Resource getDefaultTypeForConstraintPredicate(Property predicate) {
 		if(SH.property.equals(predicate)) {
 			return SH.PropertyShape;
@@ -324,8 +324,8 @@ public class SHACLUtil {
 			throw new IllegalArgumentException();
 		}
 	}
-	
-	
+
+
 	public static SHParameter getParameterAtClass(Resource cls, Property predicate) {
 		for(Resource c : JenaUtil.getAllSuperClassesStar(cls)) {
 			for(Resource arg : JenaUtil.getResourceProperties(c, SH.parameter)) {
@@ -336,8 +336,8 @@ public class SHACLUtil {
 		}
 		return null;
 	}
-	
-	
+
+
 	public static SHParameter getParameterAtInstance(Resource instance, Property predicate) {
 		for(Resource type : JenaUtil.getTypes(instance)) {
 			SHParameter argument = getParameterAtClass(type, predicate);
@@ -373,8 +373,8 @@ public class SHACLUtil {
 		}*/
 		return null;
 	}
-	
-	
+
+
 	/**
 	 * Gets any locally-defined label for a given property.
 	 * The labels are expected to be attached to shapes associated with a given
@@ -396,7 +396,7 @@ public class SHACLUtil {
 		}
 		return null;
 	}
-	
+
 	public static SHPropertyShape getPropertyConstraintAtClass(Resource cls, Property predicate) {
 		for(Resource c : JenaUtil.getAllSuperClassesStar(cls)) {
 			for(Resource arg : JenaUtil.getResourceProperties(c, SH.property)) {
@@ -407,8 +407,8 @@ public class SHACLUtil {
 		}
 		return null;
 	}
-	
-	
+
+
 	public static SHPropertyShape getPropertyConstraintAtInstance(Resource instance, Property predicate) {
 		for(Resource type : JenaUtil.getTypes(instance)) {
 			SHPropertyShape property = getPropertyConstraintAtClass(type, predicate);
@@ -418,8 +418,8 @@ public class SHACLUtil {
 		}
 		return null;
 	}
-	
-	
+
+
 	/**
 	 * Gets all the predicates of all declared sh:properties and sh:parameters
 	 * of a given class, including inherited ones.
@@ -462,8 +462,8 @@ public class SHACLUtil {
 			return new ArrayList<>();
 		}
 	}
-	
-	
+
+
 	/**
 	 * Gets all shapes associated with a given focus node.
 	 * This looks for all shapes based on class-based targets.
@@ -474,8 +474,8 @@ public class SHACLUtil {
 	public static List<SHNodeShape> getAllShapesAtNode(RDFNode node) {
 		return getAllShapesAtNode(node, node instanceof Resource ? JenaUtil.getTypes((Resource)node) : null);
 	}
-	
-	
+
+
 	public static List<SHNodeShape> getAllShapesAtNode(RDFNode node, Iterable<Resource> types) {
 		List<SHNodeShape> results = new LinkedList<>();
 		if(node instanceof Resource) {
@@ -484,13 +484,13 @@ public class SHACLUtil {
 				addAllShapesAtClassOrShape(type, results, reached);
 			}
 		}
-		
+
 		// TODO: support sh:targetObjectsOf and sh:targetSubjectsOf
-		
+
 		return results;
 	}
-	
-	
+
+
 	/**
 	 * Gets all sh:Shapes that have a given class in their target, including ConstraintComponents
 	 * and the class or shape itself if it is marked as sh:Shape.
@@ -503,7 +503,7 @@ public class SHACLUtil {
 		String key = OntologyOptimizations.get().getKeyIfEnabledFor(clsOrShape.getModel().getGraph());
 		if(key != null) {
 			key += ".getAllShapesAtClassOrShape(" + clsOrShape + ")";
-			return (List<SHNodeShape>) OntologyOptimizations.get().getOrComputeObject(key, () -> {				
+			return (List<SHNodeShape>) OntologyOptimizations.get().getOrComputeObject(key, (kUnused) -> {
 				List<SHNodeShape> results = new LinkedList<SHNodeShape>();
 				addAllShapesAtClassOrShape(clsOrShape, results, new HashSet<Resource>());
 				return results;
@@ -515,8 +515,8 @@ public class SHACLUtil {
 			return results;
 		}
 	}
-	
-	
+
+
 	private static void addAllShapesAtClassOrShape(Resource clsOrShape, List<SHNodeShape> results, Set<Resource> reached) {
 		addDirectShapesAtClassOrShape(clsOrShape, results);
 		reached.add(clsOrShape);
@@ -526,8 +526,8 @@ public class SHACLUtil {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Gets the directly associated sh:Shapes that have a given class in their target,
 	 * including ConstraintComponents and the class or shape itself if it is marked as sh:Shape.
@@ -563,8 +563,8 @@ public class SHACLUtil {
 			}
 		}
 	}
-	
-	
+
+
 	public static Set<Resource> getDirectShapesAtResource(Resource resource) {
 		Set<Resource> shapes = new HashSet<>();
 		for(Resource type : JenaUtil.getResourceProperties(resource, RDF.type)) {
@@ -591,43 +591,43 @@ public class SHACLUtil {
 		}
 		return shapes;
 	}
-	
-	
+
+
 	public static List<RDFNode> getTargetNodes(Resource shape, Dataset dataset) {
 		return getTargetNodes(shape, dataset, false);
 	}
 
-	
+
 	public static List<RDFNode> getTargetNodes(Resource shape, Dataset dataset, boolean includeApplicableToClass) {
-		
+
 		Model dataModel = dataset.getDefaultModel();
 
 		Set<RDFNode> results = new HashSet<RDFNode>();
-		
+
 		if(JenaUtil.hasIndirectType(shape, RDFS.Class)) {
 			results.addAll(JenaUtil.getAllInstances(shape.inModel(dataModel)));
 		}
-		
+
 		for(Resource targetClass : JenaUtil.getResourceProperties(shape, SH.targetClass)) {
 			results.addAll(JenaUtil.getAllInstances(targetClass.inModel(dataModel)));
 		}
-		
+
 		for(RDFNode targetNode : shape.getModel().listObjectsOfProperty(shape, SH.targetNode).toList()) {
 			results.add(targetNode.inModel(dataModel));
 		}
-		
+
 		for(Resource sof : JenaUtil.getResourceProperties(shape, SH.targetSubjectsOf)) {
 			for(Statement s : dataModel.listStatements(null, JenaUtil.asProperty(sof), (RDFNode)null).toList()) {
 				results.add(s.getSubject());
 			}
 		}
-		
+
 		for(Resource sof : JenaUtil.getResourceProperties(shape, SH.targetObjectsOf)) {
 			for(Statement s : dataModel.listStatements(null, JenaUtil.asProperty(sof), (RDFNode)null).toList()) {
 				results.add(s.getObject());
 			}
 		}
-		
+
 		for(Resource target : JenaUtil.getResourceProperties(shape, SH.target)) {
 			for(RDFNode targetNode : SHACLUtil.getResourcesInTarget(target, dataset)) {
 				results.add(targetNode);
@@ -643,7 +643,7 @@ public class SHACLUtil {
 		return new ArrayList<RDFNode>(results);
 	}
 
-	
+
 	public static List<Resource> getTypes(Resource subject) {
 		List<Resource> types = JenaUtil.getTypes(subject);
 		if(types.isEmpty()) {
@@ -654,8 +654,8 @@ public class SHACLUtil {
 		}
 		return types;
 	}
-	
-	
+
+
 	public static boolean hasMinSeverity(Resource severity, Resource minSeverity) {
 		if(minSeverity == null || SH.Info.equals(minSeverity)) {
 			return true;
@@ -667,13 +667,13 @@ public class SHACLUtil {
 			return SH.Violation.equals(severity);
 		}
 	}
-	
-	
+
+
 	public static boolean isDeactivated(Resource resource) {
 		return resource.hasProperty(SH.deactivated, JenaDatatypes.TRUE);
 	}
-	
-	
+
+
 	public static boolean isParameterAtInstance(Resource subject, Property predicate) {
 		for(Resource type : getTypes(subject)) {
 			Resource arg = getParameterAtClass(type, predicate);
@@ -683,13 +683,13 @@ public class SHACLUtil {
 		}
 		return false;
 	}
-	
-	
+
+
 	public static boolean isSPARQLProperty(Property property) {
 		return SPARQL_PROPERTIES.contains(property);
 	}
-	
-	
+
+
 	/**
 	 * Checks whether the SHACL vocabulary is present in a given Model.
 	 * The condition is that the SHACL namespace must be declared and
@@ -700,15 +700,15 @@ public class SHACLUtil {
 	public static boolean exists(Model model) {
 		return model != null && exists(model.getGraph());
 	}
-	
-	
+
+
 	public static boolean exists(Graph graph) {
 		if(graph instanceof OptimizedMultiUnion) {
 			return ((OptimizedMultiUnion)graph).getIncludesSHACL();
 		}
 		else {
 	    	return graph != null &&
-	        		SH.NS.equals(graph.getPrefixMapping().getNsPrefixURI(SH.PREFIX)) && 
+	        		SH.NS.equals(graph.getPrefixMapping().getNsPrefixURI(SH.PREFIX)) &&
 	        		graph.contains(SH.Shape.asNode(), RDF.type.asNode(), Node.ANY);
 		}
 	}
@@ -730,12 +730,12 @@ public class SHACLUtil {
 	 * @return a shapes graph Model
 	 */
 	private static Model createShapesModel(Dataset dataset) {
-		
+
 		Model model = dataset.getDefaultModel();
 		Set<Graph> graphs = new HashSet<Graph>();
 		Graph baseGraph = model.getGraph();
 		graphs.add(baseGraph);
-		
+
 		for(Statement s : model.listStatements(null, SH.shapesGraph, (RDFNode)null).toList()) {
 			if(s.getObject().isURIResource()) {
 				String graphURI = s.getResource().getURI();
@@ -744,7 +744,7 @@ public class SHACLUtil {
 				// TODO: Include includes of sm
 			}
 		}
-		
+
 		if(graphs.size() > 1) {
 			MultiUnion union = new MultiUnion(graphs.iterator());
 			union.setBaseGraph(baseGraph);
