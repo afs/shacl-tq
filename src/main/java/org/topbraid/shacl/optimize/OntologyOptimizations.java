@@ -16,14 +16,13 @@
  */
 package org.topbraid.shacl.optimize;
 
-import com.github.jsonldjava.shaded.com.google.common.cache.Cache;
-import com.github.jsonldjava.shaded.com.google.common.cache.CacheBuilder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
+import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.atlas.lib.Cache;
+import org.apache.jena.atlas.lib.CacheFactory;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
@@ -37,7 +36,7 @@ import org.topbraid.shacl.engine.ShapesGraphFactory;
  * A singleton managing Ontology-based optimizations, to be used (for example) with OptimizedMultiUnions.
  * The contract is that such optimization Objects need to register themselves so that they can
  * get invalidated once an Ontology has changed.
- * 
+ *
  * @author Holger Knublauch
  */
 public class OntologyOptimizations {
@@ -45,27 +44,27 @@ public class OntologyOptimizations {
 	final static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(java.lang.invoke.MethodHandles.lookup().lookupClass());
 
 	private static OntologyOptimizations singleton = new OntologyOptimizations();
-	
+
 	public static OntologyOptimizations get() {
 		return singleton;
 	}
-	
+
 	public static void set(OntologyOptimizations value) {
 		singleton = value;
 	}
-	
+
 	private boolean enabled;
-	
+
 	private long resetTimeStamp = System.currentTimeMillis();
-	
+
 	public boolean isEnabled() {
 		return enabled;
 	}
-	
+
 	public void setEnabled(boolean value) {
 		enabled = value;
 	}
-	
+
 	public String getKeyIfEnabledFor(Graph graph) {
 		if(enabled && graph instanceof OptimizedMultiUnion) {
 			Graph baseGraph = JenaUtil.getBaseGraph(graph);
@@ -77,36 +76,33 @@ public class OntologyOptimizations {
 		}
 		return null;
 	}
-	
+
 	private static final int capacity = 10000;
-	
-	private Cache<Object,Object> cache = CacheBuilder.
-			newBuilder().
-			maximumSize(capacity).
-			build();
-	
-	
+
+	private Cache<Object,Object> cache = CacheFactory.createCache(capacity);
+
+
 	public ClassMetadata getClassMetadata(Node cls, Graph graph, String graphKey) {
 		Object cacheKey = ClassMetadata.createKey(cls, graphKey);
 		return (ClassMetadata) getOrComputeObject(cacheKey, () -> new ClassMetadata(cls, graphKey));
 	}
-	
-	
+
+
 	public Object getObject(Object key) {
 		return cache.getIfPresent(key);
 	}
-	
+
 
 	// Legacy version with Function parameter
 	public Object getOrComputeObject(Object key, Function<Object,Object> function) {
 		return getOrComputeObject(key, () -> function.apply(key));
 	}
-	
-	
+
+
 	public Object getOrComputeObject(Object key, Callable<Object> callable) {
 		try {
-			return cache.get(key, callable);
-		} catch (ExecutionException ex) {
+			return cache.getOrFill(key, callable);
+		} catch (RuntimeException ex) {
 			log.error("Failed to populate OntologyOptimizations with key " + key, ex);
 			throw ExceptionUtil.throwUnchecked(ex);
 		}
@@ -119,17 +115,17 @@ public class OntologyOptimizations {
 			return ShapesGraphFactory.get().createShapesGraph(shapesModel);
 		});
 	}
-	
+
 	public long getResetTimeStamp() {
 		return resetTimeStamp;
 	}
 
-	
+
 	public List<Object> keys() {
-		return new ArrayList<>(cache.asMap().keySet());
+	    return Iter.toList(cache.keys());
 	}
-	
-	
+
+
 	public void perhapsReset(Graph graph) {
 		graph = JenaUtil.getBaseGraph(graph);
 		if(graph instanceof OntologyOptimizableGraph) {
@@ -142,15 +138,15 @@ public class OntologyOptimizations {
 			reset();
 		}
 	}
-	
-	
+
+
 	public void putObject(Object key, Object value) {
 		cache.put(key, value);
 	}
-	
-	
+
+
 	public void reset() {
-		cache.invalidateAll();
+		cache.clear();
 		resetTimeStamp = System.currentTimeMillis();
 	}
 }

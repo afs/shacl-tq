@@ -36,6 +36,7 @@
 *.sqlite
 
 #### Development and IDE Files
+src/main/java/afs/
 
 ## Maven files
 target/
