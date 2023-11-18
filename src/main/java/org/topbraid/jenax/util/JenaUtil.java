@@ -17,41 +17,18 @@
 
 package org.topbraid.jenax.util;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.query.ARQ;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QuerySolution;
-import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.NodeIterator;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.query.*;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.StmtIteratorImpl;
 import org.apache.jena.shared.PrefixMapping;
@@ -62,14 +39,7 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.engine.binding.BindingRoot;
-import org.apache.jena.sparql.expr.E_Function;
-import org.apache.jena.sparql.expr.Expr;
-import org.apache.jena.sparql.expr.ExprEvalException;
-import org.apache.jena.sparql.expr.ExprList;
-import org.apache.jena.sparql.expr.ExprTransform;
-import org.apache.jena.sparql.expr.ExprTransformer;
-import org.apache.jena.sparql.expr.ExprVar;
-import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.expr.nodevalue.NodeFunctions;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.graph.NodeTransform;
@@ -78,8 +48,8 @@ import org.apache.jena.sparql.syntax.syntaxtransform.ElementTransformSubst;
 import org.apache.jena.sparql.syntax.syntaxtransform.ExprTransformNodeElement;
 import org.apache.jena.sparql.syntax.syntaxtransform.QueryTransformOps;
 import org.apache.jena.sparql.util.Context;
+import org.apache.jena.sparql.util.NodeCmp;
 import org.apache.jena.sparql.util.NodeFactoryExtra;
-import org.apache.jena.sparql.util.NodeUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
@@ -90,10 +60,10 @@ import org.topbraid.jenax.progress.ProgressMonitor;
 
 /**
  * Some convenience methods to operate on Jena Models.
- * 
+ *
  * These methods are not as stable as the rest of the API, but
  * they may be of general use.
- * 
+ *
  * @author Holger Knublauch
  */
 public class JenaUtil {
@@ -103,10 +73,10 @@ public class JenaUtil {
 
 	// Leave this line under the helper line above!
 	private static Model dummyModel = JenaUtil.createDefaultModel();
-	
+
 	public static final String WITH_IMPORTS_PREFIX = "http://rdfex.org/withImports?uri=";
-	
-	
+
+
 
 	/**
 	 * Sets the helper which allows the behavior of some JenaUtil
@@ -120,8 +90,8 @@ public class JenaUtil {
 		helper = h;
 		return old;
 	}
-	
-	
+
+
 	/**
 	 * Gets the current helper object.
 	 * Note: Should not be used outside of TopBraid - not stable.
@@ -130,8 +100,8 @@ public class JenaUtil {
 	public final static JenaUtilHelper getHelper() {
 		return helper;
 	}
-	
-	
+
+
 	/**
 	 * Populates a result set of resources reachable from a subject via zero or more steps with a given predicate.
 	 * Implementation note: the results set need only implement {@link Collection#add(Object)}.
@@ -193,10 +163,10 @@ public class JenaUtil {
 			}
 		}
 	}
-	
-	
+
+
 	/**
-	 * Turns a QuerySolution into a Binding. 
+	 * Turns a QuerySolution into a Binding.
 	 * @param map  the input QuerySolution
 	 * @return a Binding or null if the input is null
 	 */
@@ -217,7 +187,7 @@ public class JenaUtil {
 			return null;
 		}
 	}
-	
+
 
 	/**
 	 * Turns a Binding into a QuerySolutionMap.
@@ -236,8 +206,8 @@ public class JenaUtil {
 		}
 		return map;
 	}
-	
-	
+
+
 	/**
 	 * Returns a set of resources reachable from an object via one or more reversed steps with a given predicate.
 	 * @param object  the object to start traversal at
@@ -257,8 +227,8 @@ public class JenaUtil {
 		set.remove(object);
 		return set;
 	}
-	
-	
+
+
 	/**
 	 * Casts a Resource into a Property.
 	 * @param resource  the Resource to cast
@@ -286,7 +256,7 @@ public class JenaUtil {
 			baseGraphs.add(graph);
 		}
 	}
-	
+
 
 	/**
 	 * Creates a new Graph.  By default this will deliver a plain in-memory graph,
@@ -301,7 +271,7 @@ public class JenaUtil {
 
 
 	/**
-	 * Wraps the result of {@link #createDefaultGraph()} into a Model and initializes namespaces. 
+	 * Wraps the result of {@link #createDefaultGraph()} into a Model and initializes namespaces.
 	 * @return a default Model
 	 * @see #createDefaultGraph()
 	 */
@@ -310,17 +280,17 @@ public class JenaUtil {
 		initNamespaces(m);
 		return m;
 	}
-	
-	
+
+
 	/**
 	 * Creates a memory Graph with no reification.
 	 * @return a new memory graph
 	 */
 	public static Graph createMemoryGraph() {
-		return Factory.createDefaultGraph();
+		return GraphMemFactory.createDefaultGraph();
 	}
-	
-	
+
+
 	/**
 	 * Creates a memory Model with no reification.
 	 * @return a new memory Model
@@ -329,22 +299,22 @@ public class JenaUtil {
 		return ModelFactory.createModelForGraph(createMemoryGraph());
 	}
 
-	
+
 	public static MultiUnion createMultiUnion() {
 		return helper.createMultiUnion();
 	}
 
-	
+
 	public static MultiUnion createMultiUnion(Graph[] graphs) {
 		return helper.createMultiUnion(graphs);
 	}
 
-	
+
 	public static MultiUnion createMultiUnion(Iterator<Graph> graphs) {
 		return helper.createMultiUnion(graphs);
 	}
-	
-	
+
+
 	/**
 	 * Gets all instances of a given class and its subclasses.
 	 * @param cls  the class to get the instances of
@@ -370,12 +340,12 @@ public class JenaUtil {
 		}
 	}
 
-	
+
 	public static Set<Resource> getAllSubClasses(Resource cls) {
 		return getAllTransitiveSubjects(cls, RDFS.subClassOf);
 	}
 
-	
+
 	/**
 	 * Returns a set consisting of a given class and all its subclasses.
 	 * Similar to rdfs:subClassOf*.
@@ -387,18 +357,18 @@ public class JenaUtil {
 		results.add(cls);
 		return results;
 	}
-	
-	
+
+
 	public static Set<Resource> getAllSubProperties(Property superProperty) {
 		return getAllTransitiveSubjects(superProperty, RDFS.subPropertyOf);
 	}
 
-	
+
 	public static Set<Resource> getAllSuperClasses(Resource cls) {
 		return getAllTransitiveObjects(cls, RDFS.subClassOf);
 	}
 
-	
+
 	/**
 	 * Returns a set consisting of a given class and all its superclasses.
 	 * Similar to rdfs:subClassOf*.
@@ -410,13 +380,13 @@ public class JenaUtil {
 		results.add(cls);
 		return results;
 	}
-	
-	
+
+
 	public static Set<Resource> getAllSuperProperties(Property subProperty) {
 		return getAllTransitiveObjects(subProperty, RDFS.subPropertyOf);
 	}
 
-	
+
 	/**
 	 * Returns a set of resources reachable from a subject via one or more steps with a given predicate.
 	 * @param subject  the subject to start at
@@ -430,12 +400,12 @@ public class JenaUtil {
 		return set;
 	}
 
-	
+
 	private static Set<Resource> getAllTransitiveSubjects(Resource object, Property predicate) {
 		return getAllTransitiveSubjects(object, predicate, null);
 	}
 
-	
+
 	public static Set<Resource> getAllTypes(Resource instance) {
 		Set<Resource> types = new HashSet<>();
 		StmtIterator it = instance.listProperties(RDF.type);
@@ -461,8 +431,8 @@ public class JenaUtil {
 	public static Graph getBaseGraph(final Model model) {
 		return getBaseGraph(model.getGraph());
 	}
-	
-	
+
+
 	public static Graph getBaseGraph(Graph graph) {
 		Graph baseGraph = graph;
 		while(baseGraph instanceof MultiUnion) {
@@ -470,8 +440,8 @@ public class JenaUtil {
 		}
 		return baseGraph;
 	}
-	
-	
+
+
 	public static Model getBaseModel(Model model) {
 		Graph baseGraph = getBaseGraph(model);
 		if(baseGraph == model.getGraph()) {
@@ -497,8 +467,8 @@ public class JenaUtil {
 	public static Literal getBestStringLiteral(Resource resource, List<String> langs, Iterable<Property> properties) {
 		return getBestStringLiteral(resource, langs, properties, (r,p) -> r.listProperties(p));
 	}
-	
-	
+
+
 	public static Literal getBestStringLiteral(Resource resource, List<String> langs, Iterable<Property> properties, BiFunction<Resource,Property,ExtendedIterator<Statement>> getter) {
 		String prefLang = langs.isEmpty() ? null : langs.get(0);
 		Literal label = null;
@@ -587,8 +557,8 @@ public class JenaUtil {
 	public static Resource getFirstRange(Resource property) {
 		return getFirstRange(property, new HashSet<>());
 	}
-	
-	
+
+
 	public static Set<Resource> getImports(Resource graph) {
 		Set<Resource> results = new HashSet<>();
 		for(Property importProperty : ImportProperties.get().getImportProperties()) {
@@ -597,7 +567,7 @@ public class JenaUtil {
 		return results;
 	}
 
-	
+
 	public static Integer getIntegerProperty(Resource subject, Property predicate) {
 		Statement s = subject.getProperty(predicate);
 		if(s != null && s.getObject().isLiteral()) {
@@ -607,8 +577,8 @@ public class JenaUtil {
 			return null;
 		}
 	}
-	
-	
+
+
 	public static RDFList getListProperty(Resource subject, Property predicate) {
 		Statement s = subject.getProperty(predicate);
 		if(s != null && s.getObject().canAs(RDFList.class)) {
@@ -618,8 +588,8 @@ public class JenaUtil {
 			return null;
 		}
 	}
-	
-	
+
+
 	public static List<Literal> getLiteralProperties(Resource subject, Property predicate) {
 		List<Literal> results = new LinkedList<>();
 		StmtIterator it = subject.listProperties(predicate);
@@ -631,8 +601,8 @@ public class JenaUtil {
 		}
 		return results;
 	}
-	
-	
+
+
 	/**
 	 * Walks up the class hierarchy starting at a given class until one of them
 	 * returns a value for a given Function.
@@ -649,7 +619,7 @@ public class JenaUtil {
 		return getNearest(cls, function, new HashSet<>());
 	}
 
-	
+
 	private static <T> T getNearest(Resource cls, java.util.function.Function<Resource,T> function, Set<Resource> reached) {
 		reached.add(cls);
 		StmtIterator it = cls.listProperties(RDFS.subClassOf);
@@ -669,7 +639,7 @@ public class JenaUtil {
 		return null;
 	}
 
-	
+
 	/**
 	 * Overcomes a design mismatch with Jena: if the base model does not declare a default namespace then the
 	 * default namespace of an import is returned - this is not desirable for TopBraid-like scenarios.
@@ -691,8 +661,8 @@ public class JenaUtil {
 			return model.getNsPrefixURI(prefix);
 		}
 	}
-	
-	
+
+
 	public static RDFNode getProperty(Resource subject, Property predicate) {
 		Statement s = subject.getProperty(predicate);
 		if(s != null) {
@@ -702,8 +672,8 @@ public class JenaUtil {
 			return null;
 		}
 	}
-	
-	
+
+
 	public static Resource getResourcePropertyWithType(Resource subject, Property predicate, Resource type) {
 		StmtIterator it = subject.listProperties(predicate);
 		while(it.hasNext()) {
@@ -715,8 +685,8 @@ public class JenaUtil {
 		}
 		return null;
 	}
-	
-	
+
+
 	public static List<Resource> getResourceProperties(Resource subject, Property predicate) {
 		List<Resource> results = new LinkedList<>();
 		StmtIterator it = subject.listProperties(predicate);
@@ -728,8 +698,8 @@ public class JenaUtil {
 		}
 		return results;
 	}
-	
-	
+
+
 	public static Resource getURIResourceProperty(Resource subject, Property predicate) {
 		Statement s = subject.getProperty(predicate);
 		if(s != null && s.getObject().isURIResource()) {
@@ -739,8 +709,8 @@ public class JenaUtil {
 			return null;
 		}
 	}
-	
-	
+
+
 	public static List<Resource> getURIResourceProperties(Resource subject, Property predicate) {
 		List<Resource> results = new LinkedList<>();
 		StmtIterator it = subject.listProperties(predicate);
@@ -752,8 +722,8 @@ public class JenaUtil {
 		}
 		return results;
 	}
-	
-	
+
+
 	public static String getStringProperty(Resource subject, Property predicate) {
 		Statement s = subject.getProperty(predicate);
 		if(s != null && s.getObject().isLiteral()) {
@@ -764,7 +734,7 @@ public class JenaUtil {
 		}
 	}
 
-	
+
 	public static boolean getBooleanProperty(Resource subject, Property predicate) {
 		Statement s = subject.getProperty(predicate);
 		if(s != null && s.getObject().isLiteral()) {
@@ -774,8 +744,8 @@ public class JenaUtil {
 			return false;
 		}
 	}
-	
-	
+
+
 	public static Double getDoubleProperty(Resource subject, Property predicate) {
 		Statement s = subject.getProperty(predicate);
 		if(s != null && s.getObject().isLiteral()) {
@@ -785,8 +755,8 @@ public class JenaUtil {
 			return null;
 		}
 	}
-	
-	
+
+
 	public static double getDoubleProperty(Resource subject, Property predicate, double defaultValue) {
 		Double d = getDoubleProperty(subject, predicate);
 		if(d != null) {
@@ -796,8 +766,8 @@ public class JenaUtil {
 			return defaultValue;
 		}
 	}
-	
-	
+
+
 	public static List<Graph> getSubGraphs(MultiUnion union) {
 		List<Graph> results = new LinkedList<>();
 		Graph baseGraph = union.getBaseGraph();
@@ -807,10 +777,10 @@ public class JenaUtil {
 		results.addAll(union.getSubGraphs());
 		return results;
 	}
-	
-	
+
+
 	/**
-	 * Gets a Set of all superclasses (rdfs:subClassOf) of a given Resource. 
+	 * Gets a Set of all superclasses (rdfs:subClassOf) of a given Resource.
 	 * @param subClass  the subClass Resource
 	 * @return a Collection of class resources
 	 */
@@ -825,7 +795,7 @@ public class JenaUtil {
 		}
 		return results;
 	}
-	
+
 
 	/**
 	 * Gets the "first" type of a given Resource.
@@ -835,18 +805,18 @@ public class JenaUtil {
 	public static Resource getType(Resource instance) {
 		return instance.getPropertyResourceValue(RDF.type);
 	}
-	
-	
+
+
 	/**
-	 * Gets a Set of all rdf:types of a given Resource. 
+	 * Gets a Set of all rdf:types of a given Resource.
 	 * @param instance  the instance Resource
 	 * @return a Collection of type resources
 	 */
 	public static List<Resource> getTypes(Resource instance) {
 		return JenaUtil.getResourceProperties(instance, RDF.type);
 	}
-	
-	
+
+
 	/**
 	 * Checks whether a given Resource is an instance of a given type, or
 	 * a subclass thereof.  Make sure that the expectedType parameter is associated
@@ -858,11 +828,11 @@ public class JenaUtil {
 	 * @return true if resource has rdf:type expectedType
 	 */
 	public static boolean hasIndirectType(Resource instance, Resource expectedType) {
-		
+
 		if(expectedType.getModel() == null) {
 			expectedType = expectedType.inModel(instance.getModel());
 		}
-		
+
 		StmtIterator it = instance.listProperties(RDF.type);
 		while(it.hasNext()) {
 			Statement s = it.next();
@@ -876,7 +846,7 @@ public class JenaUtil {
 		}
 		return false;
 	}
-	
+
 
 	/**
 	 * Checks whether a given class has a given (transitive) super class.
@@ -887,8 +857,8 @@ public class JenaUtil {
 	public static boolean hasSuperClass(Resource subClass, Resource superClass) {
 		return hasSuperClass(subClass, superClass, new HashSet<>());
 	}
-	
-	
+
+
 	private static boolean hasSuperClass(Resource subClass, Resource superClass, Set<Resource> reached) {
 		StmtIterator it = subClass.listProperties(RDFS.subClassOf);
 		while(it.hasNext()) {
@@ -907,7 +877,7 @@ public class JenaUtil {
 		}
 		return false;
 	}
-	
+
 
 	/**
 	 * Checks whether a given property has a given (transitive) super property.
@@ -928,8 +898,8 @@ public class JenaUtil {
 		PrefixMapping prefixMapping = graph.getPrefixMapping();
 		initNamespaces(prefixMapping);
 	}
-	
-	
+
+
 	/**
 	 * Sets the usual default namespaces for rdf, rdfs, owl and xsd.
 	 * @param prefixMapping  the Model to modify
@@ -967,8 +937,8 @@ public class JenaUtil {
 			return helper.isMemoryGraph(graph);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Gets an Iterator over all Statements of a given property or its sub-properties
 	 * at a given subject instance.  Note that the predicate and subject should be
@@ -988,8 +958,8 @@ public class JenaUtil {
 		}
 		return new StmtIteratorImpl(results.iterator());
 	}
-	
-	
+
+
 	private static void listAllProperties(Resource subject, Property predicate, Set<Property> reached,
 			List<Statement> results) {
 		reached.add(predicate);
@@ -1017,8 +987,8 @@ public class JenaUtil {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * This indicates that no further changes to the model are needed.
 	 * Some implementations may give runtime exceptions if this is violated.
@@ -1028,8 +998,8 @@ public class JenaUtil {
 	public static Model asReadOnlyModel(Model m) {
 		return helper.asReadOnlyModel(m);
 	}
-	
-	
+
+
 	/**
 	 * This indicates that no further changes to the graph are needed.
 	 * Some implementations may give runtime exceptions if this is violated.
@@ -1039,37 +1009,37 @@ public class JenaUtil {
 	public static Graph asReadOnlyGraph(Graph g) {
 		return helper.asReadOnlyGraph(g);
 	}
-	
-	
+
+
 	// Internal to TopBraid only
 	public static OntModel createOntologyModel(OntModelSpec spec, Model base) {
 		return helper.createOntologyModel(spec,base);
 	}
-	
-	
+
+
 	/**
 	 * Allows some environments, e.g. TopBraid, to prioritize
 	 * a block of code for reading graphs, with no update occurring.
 	 * The top of the block should call this with <code>true</code>
 	 * with a matching call with <code>false</code> in a finally
 	 * block.
-	 * 
+	 *
 	 * Note: Unstable - don't use outside of TopBraid.
-	 * 
+	 *
 	 * @param onOrOff  true to switch on
 	 */
 	public static void setGraphReadOptimization(boolean onOrOff) {
 		helper.setGraphReadOptimization(onOrOff);
 	}
 
-	
+
 	/**
 	 * Ensure that we there is a read-only, thread safe version of the
 	 * graph.  If the graph is not, then create a deep clone that is
 	 * both.
-	 * 
+	 *
 	 * Note: Unstable - don't use outside of TopBraid.
-	 * 
+	 *
 	 * @param g The given graph
 	 * @return A read-only, thread safe version of the given graph.
 	 */
@@ -1169,14 +1139,14 @@ public class JenaUtil {
 		args.add(argument3 != null ? NodeValue.makeNode(argument3.asNode()) : new ExprVar("arg3"));
 		return invokeFunction(function, args, dataset);
 	}
-	
-	
+
+
 	private static Node invokeFunction(Resource function, ExprList args, Dataset dataset) {
 
 		if (dataset == null) {
 	        dataset = ARQFactory.get().getDataset(ModelFactory.createDefaultModel());
 	    }
-		
+
 		E_Function expr = new E_Function(function.getURI(), args);
 		DatasetGraph dsg = dataset.asDatasetGraph();
 		Context cxt = ARQ.getContext().copy();
@@ -1208,7 +1178,7 @@ public class JenaUtil {
 	 */
 	public static Query queryWithSubstitutions(Query query, final Map<Var, Node> substitutions) {
 		Query result = QueryTransformOps.transform(query, substitutions);
-		
+
 		// TODO: Replace this hack once there is a Jena patch
 		if(result.hasHaving()) {
 			NodeTransform nodeTransform = new NodeTransform() {
@@ -1234,13 +1204,13 @@ public class JenaUtil {
 		}
 		return result;
 	}
-	
-	
+
+
 	public static void sort(List<Resource> nodes) {
 		Collections.sort(nodes, new Comparator<Resource>() {
 			@Override
 			public int compare(Resource o1, Resource o2) {
-		        return NodeUtils.compareRDFTerms(o1.asNode(), o2.asNode());
+			    return NodeCmp.compareRDFTerms(o1.asNode(), o2.asNode());
 			}
 		});
 	}
@@ -1254,8 +1224,8 @@ public class JenaUtil {
 			return null;
 		}
 	}
-	
-	
+
+
 	public static String withImports(String uri) {
 		if(!uri.startsWith(WITH_IMPORTS_PREFIX)) {
 			return WITH_IMPORTS_PREFIX + uri;
@@ -1264,8 +1234,8 @@ public class JenaUtil {
 			return uri;
 		}
 	}
-	
-	
+
+
 	public static String withoutImports(String uri) {
 		if(uri.startsWith(WITH_IMPORTS_PREFIX)) {
 			return uri.substring(WITH_IMPORTS_PREFIX.length());

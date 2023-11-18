@@ -18,8 +18,8 @@ package org.topbraid.jenax.util;
 
 import java.util.Iterator;
 
-import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.mem.GraphMemBase;
 import org.apache.jena.ontology.OntModel;
@@ -31,13 +31,13 @@ import org.apache.jena.rdf.model.ModelFactory;
  * This is an extension point for the SPIN library
  * allowing modification of some low level utilities
  * that are exposed through {@link JenaUtil}.
- * 
+ *
  * Note: Unstable - should not be used outside of TopBraid.
- * 
+ *
  * @author Jeremy Carroll
  */
 public class JenaUtilHelper {
-	
+
 	/**
 	 * Return a multiunion.
 	 * @return the MultiUnion graph
@@ -45,8 +45,8 @@ public class JenaUtilHelper {
 	public MultiUnion createMultiUnion() {
 		return new MultiUnion();
 	}
-	
-	
+
+
 	/**
 	 * Return a multiunion, initialized with the given graphs.
 	 * @param graphs  the Graphs to convert
@@ -56,7 +56,7 @@ public class JenaUtilHelper {
 		return new MultiUnion(graphs);
 	}
 
-	
+
 	/**
 	 * Return a multiunion, initialized with the given graphs.
 	 * @param graphs  the Graphs to convert
@@ -65,17 +65,17 @@ public class JenaUtilHelper {
 	public MultiUnion createMultiUnion(Graph[] graphs) {
 		return new MultiUnion(graphs);
 	}
-	
-	
+
+
 	/**
 	 * A memory graph with no reification.
 	 * @return the default Graph
 	 */
 	public Graph createDefaultGraph() {
-		return Factory.createDefaultGraph();
+		return GraphMemFactory.createDefaultGraph();
 	}
 
-	
+
 	/**
 	 * Returns true if optimizations for faster graphs should
 	 * be applied; false if graph is slower. A typical fast graph
@@ -89,31 +89,31 @@ public class JenaUtilHelper {
 	public boolean isMemoryGraph(Graph graph) {
 		return (graph instanceof GraphMemBase);
 	}
-	
-	
+
+
 	public Model asReadOnlyModel(Model m) {
 		return m;
 	}
-	
-	
+
+
 	public Graph asReadOnlyGraph(Graph g) {
 		return g;
 	}
-	
-	
+
+
 	public OntModel createOntologyModel(OntModelSpec spec, Model base) {
 		return ModelFactory.createOntologyModel(spec, base);
 	}
-	
-	
+
+
 	public Graph createConcurrentGraph() {
 		return createDefaultGraph();
 	}
-	
-	
+
+
 	public void setGraphReadOptimization(boolean b) {
 	}
-	
+
 	public Graph deepCloneReadOnlyGraph(Graph g) {
 		return asReadOnlyGraph(g);
 	}

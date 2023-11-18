@@ -29,6 +29,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.expr.ExprEvalException;
 import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.expr.NodeValue;
+import org.apache.jena.sparql.util.Context;
 import org.topbraid.jenax.util.ARQFactory;
 import org.topbraid.jenax.util.DatasetWithDifferentDefaultModel;
 import org.topbraid.jenax.util.JenaUtil;
@@ -41,20 +42,20 @@ import org.topbraid.shacl.vocabulary.SH;
 
 /**
  * An ARQ function that is based on a sh:SPARQLFunction.
- * 
+ *
  * There are two ways of declaring such functions:
  * - as sh:Function (similar to SPIN functions)
  * - from constraint components that point at sh:SPARQLAskValidators
  * This class has two constructors for those two cases.
- * 
+ *
  * @author Holger Knublauch
  */
 public class SHACLSPARQLARQFunction extends SHACLARQFunction {
-	
+
 	private org.apache.jena.query.Query arqQuery;
-	
+
 	private String queryString;
-	
+
 
 	/**
 	 * Constructs a new SHACLSPARQLARQFunction based on a given sh:ConstraintComponent
@@ -63,9 +64,9 @@ public class SHACLSPARQLARQFunction extends SHACLARQFunction {
 	 * @param askValidator  the sh:SPARQLAskValidator resource
 	 */
 	public SHACLSPARQLARQFunction(SHConstraintComponent component, Resource askValidator) {
-		
+
 		super(null);
-		
+
 		try {
 			queryString = JenaUtil.getStringProperty(askValidator, SH.ask);
 			arqQuery = ARQFactory.get().createQuery(SPARQLSubstitutions.withPrefixes(queryString, askValidator));
@@ -76,12 +77,12 @@ public class SHACLSPARQLARQFunction extends SHACLARQFunction {
 		if(!arqQuery.isAskType()) {
             throw new ExprEvalException("Body must be ASK query");
 		}
-		
+
 		paramNames.add("value");
 		addParameters(component);
 		paramNames.add("shapesGraph");
 	}
-	
+
 
 	/**
 	 * Constructs a new SHACLSPARQLARQFunction based on a given sh:Function.
@@ -90,9 +91,9 @@ public class SHACLSPARQLARQFunction extends SHACLARQFunction {
 	 * @param shaclFunction  the SHACL function
 	 */
 	public SHACLSPARQLARQFunction(SHSPARQLFunction shaclFunction) {
-		
+
 		super(shaclFunction);
-		
+
 		try {
 			queryString = shaclFunction.getSPARQL();
 			arqQuery = ARQFactory.get().createQuery(SPARQLSubstitutions.withPrefixes(queryString, shaclFunction));
@@ -106,19 +107,18 @@ public class SHACLSPARQLARQFunction extends SHACLARQFunction {
 
 		addParameters(shaclFunction);
 	}
-	
+
 
 	@Override
-    public void build(String uri, ExprList args) {
-	}
+    public void build(String uri, ExprList args, Context context) {}
 
-	
-	@Override
+
+    @Override
     public org.apache.jena.sparql.function.Function create(String uri) {
 		return this;
 	}
-	
-	
+
+
 	private QueryExecution createQueryExecution(Dataset dataset, Model defaultModel, QuerySolution bindings) {
 	    if(dataset == null) {
             return ARQFactory.get().createQueryExecution(arqQuery, defaultModel, bindings);
@@ -128,8 +128,8 @@ public class SHACLSPARQLARQFunction extends SHACLARQFunction {
 	    	return ARQFactory.get().createQueryExecution(arqQuery, newDataset, bindings);
 	    }
 	}
-	
-	
+
+
 	@Override
     public NodeValue executeBody(Dataset dataset, Model defaultModel, QuerySolution bindings) {
 	    try( QueryExecution qexec = createQueryExecution(dataset, defaultModel, bindings) ) {
@@ -152,7 +152,7 @@ public class SHACLSPARQLARQFunction extends SHACLARQFunction {
 	        }
 	    }
 	}
-	
+
 
 	/**
 	 * Gets the Jena Query object for execution.

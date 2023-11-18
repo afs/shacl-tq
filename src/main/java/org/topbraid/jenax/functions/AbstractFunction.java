@@ -31,6 +31,7 @@ import org.apache.jena.sparql.expr.NodeValue;
 import org.apache.jena.sparql.function.Function;
 import org.apache.jena.sparql.function.FunctionEnv;
 import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.util.Context;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.topbraid.jenax.statistics.ExecStatistics;
 import org.topbraid.jenax.statistics.ExecStatisticsManager;
@@ -38,16 +39,14 @@ import org.topbraid.jenax.statistics.ExecStatisticsManager;
 
 /**
  * Base implementation of Function comparable to Jena's FunctionBase.
- * 
+ *
  * @author Holger Knublauch
  */
 public abstract class AbstractFunction implements Function {
 
-	@Override
-    public void build(String uri, ExprList args) {
-	}
+    @Override
+    public void build(String uri, ExprList args, Context context) {}
 
-	
 	@Override
     public NodeValue exec(Binding binding, ExprList args, String uri, FunctionEnv env) {
 		Node[] nodes = new Node[args.size()];
@@ -58,7 +57,7 @@ public abstract class AbstractFunction implements Function {
 	            	NodeValue x = e.eval(binding, env);
 	            	if (x != null) {
 						nodes[i] = x.asNode();
-					} 
+					}
             	}
             }
             catch(ExprEvalException ex) {
@@ -100,7 +99,7 @@ public abstract class AbstractFunction implements Function {
 			}
 			finally {
 				long endTime = System.currentTimeMillis();
-				ExecStatistics stats = new ExecStatistics(sb.toString(), 
+				ExecStatistics stats = new ExecStatistics(sb.toString(),
 						"(Native built-in function)", endTime - startTime, startTime, NodeFactory.createURI(uri));
 				ExecStatisticsManager.get().addSilently(Collections.singleton(stats));
 			}
@@ -110,7 +109,7 @@ public abstract class AbstractFunction implements Function {
 			return exec(nodes, env);
 		}
 	}
-	
-	
+
+
 	protected abstract NodeValue exec(Node[] nodes, FunctionEnv env);
 }

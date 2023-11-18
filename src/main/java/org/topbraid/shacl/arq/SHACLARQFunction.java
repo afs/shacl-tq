@@ -57,19 +57,19 @@ import org.topbraid.shacl.vocabulary.DASH;
 
 /**
  * An ARQ function that is based on a SHACL function definition.
- * 
+ *
  * @author Holger Knublauch
  */
 public abstract class SHACLARQFunction implements org.apache.jena.sparql.function.Function, OptionalArgsFunction, DeclarativeFunctionFactory {
-	
+
 	private boolean cachable;
-	
+
 	protected List<String> paramNames = new ArrayList<String>();
-	
+
 	private List<Boolean> optional = new ArrayList<Boolean>();
-	
+
 	private SHFunction shFunction;
-	
+
 
 	/**
 	 * Constructs a new SHACLARQFunction based on a given sh:Function.
@@ -101,29 +101,24 @@ public abstract class SHACLARQFunction implements org.apache.jena.sparql.functio
 			JenaUtil.setGraphReadOptimization(false);
 		}
 	}
-	
 
-	@Override
-    public void build(String uri, ExprList args) {
-	}
 
-	
 	@Override
     public org.apache.jena.sparql.function.Function create(String uri) {
 		return this;
 	}
 
-	
+
 	@Override
     public NodeValue exec(Binding binding, ExprList args, String uri, FunctionEnv env) {
-		
+
 		Graph activeGraph = env.getActiveGraph();
-		Model model = activeGraph != null ? 
+		Model model = activeGraph != null ?
 				ModelFactory.createModelForGraph(activeGraph) :
 				ModelFactory.createDefaultModel();
-		
+
 		QuerySolutionMap bindings = new QuerySolutionMap();
-		
+
 		Node[] paramsForCache;
 		if(cachable) {
 			paramsForCache = new Node[args.size()];
@@ -153,9 +148,9 @@ public abstract class SHACLARQFunction implements org.apache.jena.sparql.functio
 	        	}
 			}
 		}
-		
+
 		Dataset dataset = DatasetFactory.wrap(env.getDataset());
-		
+
 		if(ExecStatisticsManager.get().isRecording() && ExecStatisticsManager.get().isRecordingDeclarativeFunctions()) {
 			StringBuffer sb = new StringBuffer();
 			sb.append("SHACL Function ");
@@ -215,11 +210,11 @@ public abstract class SHACLARQFunction implements org.apache.jena.sparql.functio
 
 
 	public abstract NodeValue executeBody(Dataset dataset, Model model, QuerySolution bindings);
-	
-	
+
+
 	protected abstract String getQueryString();
-	
-	
+
+
 	/**
 	 * Gets the underlying sh:Function Model object for this ARQ function.
 	 * @return the sh:Function (may be null)
@@ -227,8 +222,8 @@ public abstract class SHACLARQFunction implements org.apache.jena.sparql.functio
 	public SHFunction getSHACLFunction() {
 		return shFunction;
 	}
-	
-	
+
+
 	/**
 	 * Gets the names of the declared parameters, in order from left to right.
 	 * @return the parameter names
