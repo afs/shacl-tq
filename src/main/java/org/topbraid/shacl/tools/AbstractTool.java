@@ -37,38 +37,40 @@ import org.topbraid.shacl.vocabulary.TOSH;
 class AbstractTool {
 
 	private final static String DATA_FILE = "-datafile";
-	
+
 	private final static String SHAPES_FILE = "-shapesfile";
 
 	private final static String MAX_ITERATIONS = "-maxiterations";
 
-	
+	private final static String DATA_FILE_2 = "-d";
+    private final static String SHAPES_FILE_2 = "-s";
+
 	private OntDocumentManager dm = new OntDocumentManager();
-	
+
 	private OntModelSpec spec = new OntModelSpec(OntModelSpec.OWL_MEM);
-	
-	
+
+
 	AbstractTool() {
-		
+
 		InputStream shaclTTL = SHACLSystemModel.class.getResourceAsStream("/rdf/shacl.ttl");
 		Model shacl = JenaUtil.createMemoryModel();
 		shacl.read(shaclTTL, SH.BASE_URI, FileUtils.langTurtle);
 		shacl.add(SystemTriples.getVocabularyModel());
 		dm.addModel(SH.BASE_URI, shacl);
-		
+
 		InputStream dashTTL = SHACLSystemModel.class.getResourceAsStream("/rdf/dash.ttl");
 		Model dash = JenaUtil.createMemoryModel();
 		dash.read(dashTTL, SH.BASE_URI, FileUtils.langTurtle);
 		dm.addModel(DASH.BASE_URI, dash);
-		
+
 		InputStream toshTTL = SHACLSystemModel.class.getResourceAsStream("/rdf/tosh.ttl");
 		Model tosh = JenaUtil.createMemoryModel();
 		tosh.read(toshTTL, SH.BASE_URI, FileUtils.langTurtle);
 		dm.addModel(TOSH.BASE_URI, tosh);
-		
+
 		spec.setDocumentManager(dm);
 	}
-	
+
 	protected int getMaxIterations(String[] args) {
 		for(int i = 0; i < args.length - 1; i++) {
 			if(MAX_ITERATIONS.equals(args[i])) {
@@ -77,10 +79,11 @@ class AbstractTool {
 		}
 		return 1;
 	}
-	
+
+
 	protected Model getDataModel(String[] args) throws IOException {
 		for(int i = 0; i < args.length - 1; i++) {
-			if(DATA_FILE.equals(args[i])) {
+            if ( DATA_FILE.equals(args[i]) || DATA_FILE_2.equals(args[i]) ) {
 				String dataFileName = args[i + 1];
 				OntModel dataModel = ModelFactory.createOntologyModel(spec);
 				File file = new File(dataFileName);
@@ -93,11 +96,11 @@ class AbstractTool {
 		System.exit(0);
 		return null;
 	}
-	
-	
+
+
 	protected Model getShapesModel(String[] args) throws IOException {
 		for(int i = 0; i < args.length - 1; i++) {
-			if(SHAPES_FILE.equals(args[i])) {
+            if ( SHAPES_FILE.equals(args[i]) || SHAPES_FILE_2.equals(args[i]) ) {
 				String fileName = args[i + 1];
 				OntModel model = ModelFactory.createOntologyModel(spec);
 				File file = new File(fileName);

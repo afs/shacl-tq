@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.datatypes.xsd.impl.XMLLiteralType;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -33,10 +32,10 @@ import org.apache.jena.vocabulary.XSD;
 
 /**
  * Provides access to the RDF/RDFS/OWL system triples.
- * 
+ *
  * TopBraid and this API adds some extra triples (such as declaring
  * superclasses for each system class) that make life easier.
- * 
+ *
  * @author Holger Knublauch
  */
 public class SystemTriples {
@@ -81,10 +80,10 @@ public class SystemTriples {
 			vocabulary.read(ttl, "urn:x:dummy", FileUtils.langTurtle);
 			ensureSuperClasses(RDFS.Class, RDFS.Resource);
 			ensureSuperClasses(OWL.Class, OWL.Thing);
-			
+
 			// Remove owl imports rdfs which only causes trouble
-			vocabulary.removeAll(null, OWL.imports, null); 
-			
+			vocabulary.removeAll(null, OWL.imports, null);
+
 			vocabulary.add(OWL.Thing, RDFS.subClassOf, RDFS.Resource);
 			vocabulary.add(OWL.inverseOf, RDF.type, OWL.SymmetricProperty);
 			vocabulary.add(OWL.equivalentClass, RDF.type, OWL.SymmetricProperty);
@@ -93,7 +92,7 @@ public class SystemTriples {
 			vocabulary.add(OWL.differentFrom, RDF.type, OWL.SymmetricProperty);
 			vocabulary.add(OWL.sameAs, RDF.type, OWL.SymmetricProperty);
 			vocabulary.add(OWL.disjointWith, RDF.type, OWL.SymmetricProperty);
-			Resource xml = vocabulary.getResource(XMLLiteralType.theXMLLiteralType.getURI());
+			Resource xml = vocabulary.getResource(RDF.dtXMLLiteral.getURI());
 			vocabulary.add(xml, RDFS.subClassOf, RDFS.Resource);
 			for(String uri : JenaDatatypes.getDatatypeURIs()) {
 				Resource r = vocabulary.getResource(uri);
@@ -102,15 +101,15 @@ public class SystemTriples {
 					vocabulary.add(r, RDFS.subClassOf, RDFS.Literal);
 				}
 			}
-			
+
 			// vocabulary.add(RDF.HTML, RDFS.label, "HTML");
-			
+
 			// Triples were formally in OWL 1, but dropped from OWL 2
 			vocabulary.add(RDFS.comment, RDF.type, OWL.AnnotationProperty);
 			vocabulary.add(RDFS.label, RDF.type, OWL.AnnotationProperty);
 			vocabulary.add(RDFS.isDefinedBy, RDF.type, OWL.AnnotationProperty);
 			vocabulary.add(RDFS.seeAlso, RDF.type, OWL.AnnotationProperty);
-			
+
 			// Add rdfs:labels for XSD types
 			for(Resource datatype : vocabulary.listSubjectsWithProperty(RDF.type, RDFS.Datatype).toList()) {
 				datatype.addProperty(RDFS.label, datatype.getLocalName());

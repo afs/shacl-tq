@@ -24,7 +24,7 @@ import org.apache.jena.sparql.syntax.*;
 /** <p> Visitor pattern helper that walks the entire tree calling operations
  * are various points in the walking process.  It is a depth first traversal.</p>
  *
- * <p> Every visit operation is bracketted by a start/end pair making the
+ * <p> Every visit operation is bracketed by a start/end pair making the
  * calling points:
  * <ul>
  * <li>start of element</li>
@@ -102,150 +102,164 @@ public class RecursiveElementVisitor implements ElementVisitor
     public void endElement(ElementLateral el)     {}
     public void startElement(ElementLateral el)   {}
 
-    protected ElementVisitor visitor = null ;
+//    public void endElement(ElementSemiJoin el)     {}
+//    public void startElement(ElementSemiJoin el)   {}
+//
+//    public void endElement(ElementAntiJoin el)     {}
+//    public void startElement(ElementAntiJoin el)   {}
+
+    public void endElement(ElementUnfold el)     {}
+    public void startElement(ElementUnfold el)   {}
+
+
+    protected ElementVisitor visitor = null;
 
     // ----
 
-    private RecursiveElementVisitor() { this.visitor = new ElementVisitorBase() ; }
+    private RecursiveElementVisitor() {
+        this.visitor = new ElementVisitorBase();
+    }
 
-    public RecursiveElementVisitor(ElementVisitor visitor) { this.visitor = visitor ; }
+    public RecursiveElementVisitor(ElementVisitor visitor) {
+        this.visitor = visitor;
+    }
 
     // Visitor pattern on Elements
 
     @Override
-    public final void visit(ElementTriplesBlock el)
-    {
-        startElement(el) ;
-        endElement(el) ;
+    public final void visit(ElementTriplesBlock el) {
+        startElement(el);
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementDataset el)
-    {
-        startElement(el) ;
-        el.getElement().visit(this) ;
-        endElement(el) ;
+    public final void visit(ElementDataset el) {
+        startElement(el);
+        el.getElement().visit(this);
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementFilter el)
-    {
-        startElement(el) ;
-        endElement(el) ;
+    public final void visit(ElementFilter el) {
+        startElement(el);
+        endElement(el);
     }
 
     @Override
-    public void visit(ElementAssign el)
-    {
-        startElement(el) ;
-        endElement(el) ;
+    public void visit(ElementAssign el) {
+        startElement(el);
+        endElement(el);
     }
 
     @Override
-    public void visit(ElementBind el)
-    {
-        startElement(el) ;
-        endElement(el) ;
+    public void visit(ElementBind el) {
+        startElement(el);
+        endElement(el);
     }
 
     @Override
-    public void visit(ElementData el)
-    {
-        startElement(el) ;
-        endElement(el) ;
+    public void visit(ElementData el) {
+        startElement(el);
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementUnion el)
-    {
-        startElement(el) ;
-        for ( Element subElement : el.getElements() )
-        {
-            startSubElement(el, subElement) ;
-            subElement.visit(this) ;
-            endSubElement(el, subElement) ;
+    public final void visit(ElementUnion el) {
+        startElement(el);
+        for ( Element subElement : el.getElements() ) {
+            startSubElement(el, subElement);
+            subElement.visit(this);
+            endSubElement(el, subElement);
         }
-        endElement(el) ;
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementGroup el)
-    {
-        startElement(el) ;
-        for ( Element subElement : el.getElements() )
-        {
-            startSubElement(el, subElement) ;
-            subElement.visit(this) ;
-            endSubElement(el, subElement) ;
+    public final void visit(ElementGroup el) {
+        startElement(el);
+        for ( Element subElement : el.getElements() ) {
+            startSubElement(el, subElement);
+            subElement.visit(this);
+            endSubElement(el, subElement);
         }
-        endElement(el) ;
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementOptional el)
-    {
-        startElement(el) ;
-        el.getOptionalElement().visit(this) ;
-        endElement(el) ;
+    public final void visit(ElementOptional el) {
+        startElement(el);
+        el.getOptionalElement().visit(this);
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementNamedGraph el)
-    {
-        startElement(el) ;
-        el.getElement().visit(this) ;
-        endElement(el) ;
+    public final void visit(ElementNamedGraph el) {
+        startElement(el);
+        el.getElement().visit(this);
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementService el)
-    {
-        startElement(el) ;
-        el.getElement().visit(this) ;
-        endElement(el) ;
+    public final void visit(ElementService el) {
+        startElement(el);
+        el.getElement().visit(this);
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementExists el)
-    {
-        startElement(el) ;
-        el.getElement().visit(this) ;
-        endElement(el) ;
+    public final void visit(ElementExists el) {
+        startElement(el);
+        el.getElement().visit(this);
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementNotExists el)
-    {
-        startElement(el) ;
-        el.getElement().visit(this) ;
-        endElement(el) ;
+    public final void visit(ElementNotExists el) {
+        startElement(el);
+        el.getElement().visit(this);
+        endElement(el);
     }
 
     @Override
-    public final void visit(ElementMinus el)
-    {
-        startElement(el) ;
-        el.getMinusElement().visit(this) ;
-        endElement(el) ;
+    public final void visit(ElementMinus el) {
+        startElement(el);
+        el.getMinusElement().visit(this);
+        endElement(el);
     }
 
     @Override
-    public void visit(ElementSubQuery el)
-    {
-        startElement(el) ;
-        endElement(el) ;
+    public void visit(ElementSubQuery el) {
+        startElement(el);
+        endElement(el);
     }
 
     @Override
-    public void visit(ElementPathBlock el)
-    {
-        startElement(el) ;
-        endElement(el) ;
+    public void visit(ElementPathBlock el) {
+        startElement(el);
+        endElement(el);
     }
+
     @Override
-    public void visit(ElementLateral el)
-    {
-        startElement(el) ;
-        endElement(el) ;
+    public void visit(ElementLateral el) {
+        startElement(el);
+        endElement(el);
+    }
+
+//    @Override
+//    public void visit(ElementSemiJoin el) {
+//        startElement(el);
+//        endElement(el);
+//    }
+//
+//    @Override
+//    public void visit(ElementAntiJoin el) {
+//        startElement(el);
+//        endElement(el);
+//    }
+
+    @Override
+    public void visit(ElementUnfold el) {
+        startElement(el);
+        endElement(el);
     }
 }
